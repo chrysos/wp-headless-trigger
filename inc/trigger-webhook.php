@@ -1,29 +1,34 @@
 <?php
+
 /**
  * Trigger the Webhook each time a Post or Page is updated
  */
-function wp_headless_trigger_trigger_webhook_on_save_post( $post_id ) {
-    if ( wp_is_post_revision( $post_id ) ) {
+function wp_headless_trigger_trigger_webhook_on_save_post($post_id, $post)
+{
+    if ($post->post_status !== 'publish' && $post->post_status !== 'trash') {
         return;
     }
-    $wp_headless_trigger_settings = get_option( 'wp_headless_trigger_settings' );
+    // Ignore post revision
+    if (wp_is_post_revision($post_id)) {
+        return;
+    }
+    $wp_headless_trigger_settings = get_option('wp_headless_trigger_settings');
     if (
-        ! array_key_exists( 'wp_headless_trigger_webhook_url', $wp_headless_trigger_settings ) ||
-        empty( $wp_headless_trigger_settings['wp_headless_trigger_webhook_url'] )
+        !array_key_exists('wp_headless_trigger_webhook_url', $wp_headless_trigger_settings) ||
+        empty($wp_headless_trigger_settings['wp_headless_trigger_webhook_url'])
     ) {
         return false;
     }
 
-    $webhook_url = esc_url( $wp_headless_trigger_settings['wp_headless_trigger_webhook_url'] );
+    $webhook_url = esc_url($wp_headless_trigger_settings['wp_headless_trigger_webhook_url']);
 
-    $response = wp_remote_post( $webhook_url );
+    $response = wp_remote_post($webhook_url);
 
-    if ( is_wp_error( $response ) ) {
+    if (is_wp_error($response)) {
         $error_message = $response->get_error_message();
-        error_log( "WP Headless Trigger: " . $error_message, 0 );
+        error_log("WP Headless Trigger: " . $error_message, 0);
     } else {
-        update_option( 'wp_headless_trigger_last_trigger', time() );
+        update_option('wp_headless_trigger_last_trigger', time());
     }
-
 }
-add_action( 'save_post', 'wp_headless_trigger_trigger_webhook_on_save_post' );
+add_action('save_post', 'wp_headless_trigger_trigger_webhook_on_save_post', 20, 2);
