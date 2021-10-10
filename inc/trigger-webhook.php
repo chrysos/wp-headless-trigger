@@ -13,7 +13,6 @@ function wp_headless_trigger_trigger_webhook_on_save_post($new_status, $old_stat
         ) {
             return false;
         }
-        pr('publicar', 1);
         $webhook_url = esc_url($wp_headless_trigger_settings['wp_headless_trigger_webhook_url']);
         $response = wp_remote_post($webhook_url);
         if (is_wp_error($response)) {
