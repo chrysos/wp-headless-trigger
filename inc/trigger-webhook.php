@@ -3,6 +3,9 @@
  * Trigger the Webhook each time a Post or Page is updated
  */
 function wp_headless_trigger_trigger_webhook_on_save_post( $post_id ) {
+    if ( wp_is_post_revision( $post_id ) ) {
+        return;
+    }
     $wp_headless_trigger_settings = get_option( 'wp_headless_trigger_settings' );
     if (
         ! array_key_exists( 'wp_headless_trigger_webhook_url', $wp_headless_trigger_settings ) ||
